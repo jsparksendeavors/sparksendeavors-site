@@ -204,6 +204,42 @@
   .about-copy { display: flex; flex-direction: column; gap: 18px; color: var(--ink-soft); max-width: 60ch; }
   .about-copy .opener { font-family: "Iowan Old Style", Palatino, Georgia, serif; font-size: 21px; line-height: 1.5; color: var(--ink); }
 
+  /* signup modal */
+  .modal-overlay {
+    position: fixed; inset: 0; z-index: 50;
+    background: rgba(0,0,0,.62);
+    display: flex; align-items: center; justify-content: center;
+    padding: 24px;
+  }
+  .modal-overlay[hidden] { display: none; }
+  .modal {
+    background: var(--panel-2); border: 1px solid var(--hairline);
+    box-shadow: var(--shadow);
+    width: 100%; max-width: 430px; padding: 38px 36px 34px; position: relative;
+  }
+  .modal h3 { font-size: 24px; margin-bottom: 8px; }
+  .modal .m-sub { color: var(--ink-soft); font-size: 15px; margin-bottom: 24px; }
+  .modal label { display: block; font-size: 11.5px; letter-spacing: .16em; text-transform: uppercase; color: var(--ink-faint); margin: 16px 0 6px; }
+  .modal input[type="text"], .modal input[type="email"] {
+    width: 100%; padding: 12px 14px; font-size: 16px;
+    background: var(--ground); color: var(--ink);
+    border: 1px solid var(--hairline); border-radius: 0;
+    font-family: inherit;
+  }
+  .modal input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .modal .cta { margin-top: 24px; width: 100%; text-align: center; border: 0; cursor: pointer; font-family: inherit; }
+  .modal .m-close {
+    position: absolute; top: 12px; right: 14px;
+    background: none; border: 0; color: var(--ink-faint); font-size: 22px; line-height: 1;
+    cursor: pointer; padding: 6px;
+  }
+  .modal .m-close:hover { color: var(--ink); }
+  .modal .m-error { color: #c8674b; font-size: 14px; margin-top: 14px; display: none; }
+  .modal .m-success { text-align: center; padding: 18px 0 8px; }
+  .modal .m-success h3 { margin-bottom: 10px; }
+  .modal .m-success p { color: var(--ink-soft); font-size: 15px; }
+  .hp-field { position: absolute; left: -9999px; opacity: 0; }
+
   /* footer */
   footer { padding: 64px 0 80px; text-align: center; }
   footer .fmark { font-family: "Iowan Old Style", Palatino, Georgia, serif; letter-spacing: .12em; font-size: 15px; }
@@ -296,7 +332,7 @@
       </div>
     </div>
 
-    <p class="lede" style="margin-top:36px">Want to know when they publish? <a href="mailto:josh@sparksendeavors.com?subject=Book%20updates">Ask to be on the list</a>.</p>
+    <p class="lede" style="margin-top:36px">Want to know when they publish? <a href="#" id="open-signup">Ask to be on the list</a>.</p>
   </div>
 </section>
 
@@ -393,3 +429,85 @@
     <p class="legal">© 2026 Sparks Endeavors. All rights reserved.</p>
   </div>
 </footer>
+
+<div class="modal-overlay" id="signup-modal" hidden role="dialog" aria-modal="true" aria-labelledby="signup-title">
+  <div class="modal">
+    <button class="m-close" type="button" aria-label="Close">×</button>
+    <div class="m-body">
+      <h3 class="serif" id="signup-title">Get book updates</h3>
+      <p class="m-sub">Leave your name and email — you'll hear from Josh when the books publish. Nothing else, no spam.</p>
+      <form id="signup-form" novalidate>
+        <input type="checkbox" name="botcheck" class="hp-field" tabindex="-1" autocomplete="off">
+        <label for="sf-name">Name</label>
+        <input type="text" id="sf-name" name="name" autocomplete="name" required>
+        <label for="sf-email">Email</label>
+        <input type="email" id="sf-email" name="email" autocomplete="email" required>
+        <button class="cta" type="submit">Put me on the list</button>
+        <p class="m-error" id="sf-error">Something went wrong sending that. Please try again, or email <a href="mailto:josh@sparksendeavors.com">josh@sparksendeavors.com</a> directly.</p>
+      </form>
+    </div>
+    <div class="m-success" hidden>
+      <h3 class="serif">You're on the list.</h3>
+      <p>Thanks — you'll hear from Josh when the books are ready.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  var overlay = document.getElementById('signup-modal');
+  var openLink = document.getElementById('open-signup');
+  var form = document.getElementById('signup-form');
+  var errorEl = document.getElementById('sf-error');
+  var body = overlay.querySelector('.m-body');
+  var success = overlay.querySelector('.m-success');
+
+  function openModal(e) {
+    e.preventDefault();
+    overlay.hidden = false;
+    document.documentElement.style.overflow = 'hidden';
+    document.getElementById('sf-name').focus();
+  }
+  function closeModal() {
+    overlay.hidden = true;
+    document.documentElement.style.overflow = '';
+  }
+
+  openLink.addEventListener('click', openModal);
+  overlay.querySelector('.m-close').addEventListener('click', closeModal);
+  overlay.addEventListener('click', function (e) { if (e.target === overlay) closeModal(); });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && !overlay.hidden) closeModal();
+  });
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    errorEl.style.display = 'none';
+    if (!form.reportValidity()) return;
+    var btn = form.querySelector('.cta');
+    btn.disabled = true;
+    btn.textContent = 'Sending…';
+    fetch('https://api.web3forms.com/submit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({
+        access_key: '738c817d-c6e9-473a-be88-2d41ad67a5d8',
+        subject: 'Book list signup — sparksendeavors.com',
+        from_name: 'Sparks Endeavors Website',
+        name: form.name.value,
+        email: form.email.value,
+        botcheck: form.botcheck.checked
+      })
+    }).then(function (r) { return r.json(); }).then(function (data) {
+      if (data.success) {
+        body.hidden = true;
+        success.hidden = false;
+      } else { throw new Error(data.message); }
+    }).catch(function () {
+      errorEl.style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = 'Put me on the list';
+    });
+  });
+})();
+</script>
