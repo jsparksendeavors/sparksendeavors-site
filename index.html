@@ -474,6 +474,29 @@
   }
 
   openLink.addEventListener('click', openModal);
+
+  // Auto-open once per visitor when they reach the Books section
+  var AUTO_KEY = 'se-signup-shown';
+  var DONE_KEY = 'se-signup-done';
+  var storageOk = true;
+  try { localStorage.getItem(AUTO_KEY); } catch (e) { storageOk = false; }
+  if (storageOk && 'IntersectionObserver' in window &&
+      !localStorage.getItem(AUTO_KEY) && !localStorage.getItem(DONE_KEY)) {
+    var booksEl = document.getElementById('books');
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting && overlay.hidden) {
+          observer.disconnect();
+          localStorage.setItem(AUTO_KEY, '1');
+          setTimeout(function () {
+            overlay.hidden = false;
+            document.documentElement.style.overflow = 'hidden';
+          }, 700);
+        }
+      });
+    }, { threshold: 0.45 });
+    observer.observe(booksEl);
+  }
   overlay.querySelector('.m-close').addEventListener('click', closeModal);
   overlay.addEventListener('click', function (e) { if (e.target === overlay) closeModal(); });
   document.addEventListener('keydown', function (e) {
@@ -502,6 +525,7 @@
       if (data.success) {
         body.hidden = true;
         success.hidden = false;
+        try { localStorage.setItem('se-signup-done', '1'); } catch (err) {}
       } else { throw new Error(data.message); }
     }).catch(function () {
       errorEl.style.display = 'block';
