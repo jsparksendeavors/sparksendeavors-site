@@ -266,13 +266,14 @@
   .modal h3 { font-size: 24px; margin-bottom: 8px; }
   .modal .m-sub { color: var(--ink-soft); font-size: 15px; margin-bottom: 24px; }
   .modal label { display: block; font-size: 11.5px; letter-spacing: .16em; text-transform: uppercase; color: var(--ink-faint); margin: 16px 0 6px; }
-  .modal input[type="text"], .modal input[type="email"] {
+  .modal input[type="text"], .modal input[type="email"], .modal textarea {
     width: 100%; padding: 12px 14px; font-size: 16px;
     background: var(--ground); color: var(--ink);
     border: 1px solid var(--hairline); border-radius: 0;
     font-family: inherit;
   }
-  .modal input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .modal textarea { resize: vertical; min-height: 96px; line-height: 1.5; }
+  .modal input:focus-visible, .modal textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
   .modal .cta { margin-top: 24px; width: 100%; text-align: center; border: 0; cursor: pointer; font-family: inherit; }
   .modal .m-close {
     position: absolute; top: 12px; right: 14px;
@@ -472,7 +473,7 @@
       </li>
     </ul>
 
-    <a class="cta" href="mailto:josh@sparksendeavors.com?subject=Speaking%20inquiry">Book Josh to speak</a>
+    <a class="cta" href="#" id="open-speak">Book Josh to speak</a>
   </div>
 </section>
 
@@ -525,29 +526,107 @@
   </div>
 </div>
 
+<div class="modal-overlay" id="speak-modal" hidden role="dialog" aria-modal="true" aria-labelledby="speak-title">
+  <div class="modal">
+    <button class="m-close" type="button" aria-label="Close">×</button>
+    <div class="m-body">
+      <h3 class="serif" id="speak-title">Book Josh to speak</h3>
+      <p class="m-sub">Tell me a little about your event and I'll get back to you directly.</p>
+      <form id="speak-form" novalidate>
+        <input type="checkbox" name="botcheck" class="hp-field" tabindex="-1" autocomplete="off">
+        <label for="sp-name">Name</label>
+        <input type="text" id="sp-name" name="name" autocomplete="name" required>
+        <label for="sp-email">Email</label>
+        <input type="email" id="sp-email" name="email" autocomplete="email" required>
+        <label for="sp-org">Organization</label>
+        <input type="text" id="sp-org" name="organization" autocomplete="organization">
+        <label for="sp-msg">About your event</label>
+        <textarea id="sp-msg" name="message" placeholder="Event, audience, date, location…" required></textarea>
+        <button class="cta" type="submit">Send inquiry</button>
+        <p class="m-error" id="sp-error">Something went wrong sending that. Please try again, or email <a href="mailto:josh@sparksendeavors.com">josh@sparksendeavors.com</a> directly.</p>
+      </form>
+    </div>
+    <div class="m-success" hidden>
+      <h3 class="serif">Inquiry sent.</h3>
+      <p>Thanks — Josh will get back to you soon.</p>
+    </div>
+  </div>
+</div>
+
 <script>
 (function () {
-  var overlay = document.getElementById('signup-modal');
-  var openLink = document.getElementById('open-signup');
-  var form = document.getElementById('signup-form');
-  var errorEl = document.getElementById('sf-error');
-  var body = overlay.querySelector('.m-body');
-  var success = overlay.querySelector('.m-success');
+  var ACCESS_KEY = '738c817d-c6e9-473a-be88-2d41ad67a5d8';
 
-  function openModal(e) {
-    e.preventDefault();
-    overlay.hidden = false;
-    document.documentElement.style.overflow = 'hidden';
-    document.getElementById('sf-name').focus();
+  function setupModal(overlayId, openId, formId, errorId, subject, extraFields) {
+    var overlay = document.getElementById(overlayId);
+    var openLink = document.getElementById(openId);
+    var form = document.getElementById(formId);
+    var errorEl = document.getElementById(errorId);
+    var body = overlay.querySelector('.m-body');
+    var success = overlay.querySelector('.m-success');
+
+    function open(e) {
+      if (e) e.preventDefault();
+      overlay.hidden = false;
+      document.documentElement.style.overflow = 'hidden';
+      var first = form.querySelector('input[type="text"]');
+      if (first) first.focus();
+    }
+    function close() {
+      overlay.hidden = true;
+      document.documentElement.style.overflow = '';
+    }
+
+    openLink.addEventListener('click', open);
+    overlay.querySelector('.m-close').addEventListener('click', close);
+    overlay.addEventListener('click', function (e) { if (e.target === overlay) close(); });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && !overlay.hidden) close();
+    });
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      errorEl.style.display = 'none';
+      if (!form.reportValidity()) return;
+      var btn = form.querySelector('.cta');
+      var btnLabel = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = 'Sending…';
+      var payload = {
+        access_key: ACCESS_KEY,
+        subject: subject,
+        from_name: 'Sparks Endeavors Website',
+        name: form.name.value,
+        email: form.email.value,
+        botcheck: form.botcheck.checked
+      };
+      (extraFields || []).forEach(function (f) { payload[f] = form[f].value; });
+      fetch('https://api.web3forms.com/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify(payload)
+      }).then(function (r) { return r.json(); }).then(function (data) {
+        if (data.success) {
+          body.hidden = true;
+          success.hidden = false;
+          try { localStorage.setItem('se-signup-done', '1'); } catch (err) {}
+        } else { throw new Error(data.message); }
+      }).catch(function () {
+        errorEl.style.display = 'block';
+        btn.disabled = false;
+        btn.textContent = btnLabel;
+      });
+    });
+
+    return { open: open };
   }
-  function closeModal() {
-    overlay.hidden = true;
-    document.documentElement.style.overflow = '';
-  }
 
-  openLink.addEventListener('click', openModal);
+  var signup = setupModal('signup-modal', 'open-signup', 'signup-form', 'sf-error',
+    'Book list signup — sparksendeavors.com', []);
+  setupModal('speak-modal', 'open-speak', 'speak-form', 'sp-error',
+    'Speaking inquiry — sparksendeavors.com', ['organization', 'message']);
 
-  // Auto-open once per visitor when they reach the Books section
+  // Auto-open signup once per visitor when they reach the Books section
   var AUTO_KEY = 'se-signup-shown';
   var DONE_KEY = 'se-signup-done';
   var storageOk = true;
@@ -557,53 +636,15 @@
     var booksEl = document.getElementById('books');
     var observer = new IntersectionObserver(function (entries) {
       entries.forEach(function (entry) {
-        if (entry.isIntersecting && overlay.hidden) {
+        var speakOpen = !document.getElementById('speak-modal').hidden;
+        if (entry.isIntersecting && document.getElementById('signup-modal').hidden && !speakOpen) {
           observer.disconnect();
           localStorage.setItem(AUTO_KEY, '1');
-          setTimeout(function () {
-            overlay.hidden = false;
-            document.documentElement.style.overflow = 'hidden';
-          }, 700);
+          setTimeout(function () { signup.open(); }, 700);
         }
       });
     }, { threshold: 0.45 });
     observer.observe(booksEl);
   }
-  overlay.querySelector('.m-close').addEventListener('click', closeModal);
-  overlay.addEventListener('click', function (e) { if (e.target === overlay) closeModal(); });
-  document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape' && !overlay.hidden) closeModal();
-  });
-
-  form.addEventListener('submit', function (e) {
-    e.preventDefault();
-    errorEl.style.display = 'none';
-    if (!form.reportValidity()) return;
-    var btn = form.querySelector('.cta');
-    btn.disabled = true;
-    btn.textContent = 'Sending…';
-    fetch('https://api.web3forms.com/submit', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-      body: JSON.stringify({
-        access_key: '738c817d-c6e9-473a-be88-2d41ad67a5d8',
-        subject: 'Book list signup — sparksendeavors.com',
-        from_name: 'Sparks Endeavors Website',
-        name: form.name.value,
-        email: form.email.value,
-        botcheck: form.botcheck.checked
-      })
-    }).then(function (r) { return r.json(); }).then(function (data) {
-      if (data.success) {
-        body.hidden = true;
-        success.hidden = false;
-        try { localStorage.setItem('se-signup-done', '1'); } catch (err) {}
-      } else { throw new Error(data.message); }
-    }).catch(function () {
-      errorEl.style.display = 'block';
-      btn.disabled = false;
-      btn.textContent = 'Put me on the list';
-    });
-  });
 })();
 </script>
