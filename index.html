@@ -192,20 +192,33 @@
     text-decoration: none; color: inherit;
   }
   .episode:hover { text-decoration: none; border-color: var(--accent); }
-  .episode .thumb { position: relative; line-height: 0; }
-  .episode .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .episode .thumb { position: relative; line-height: 0; overflow: hidden; align-self: stretch; }
+  .episode .thumb img {
+    width: 100%; height: 100%; object-fit: cover; display: block;
+    filter: grayscale(1) contrast(1.1) brightness(.88);
+    transition: filter .35s ease, transform .35s ease;
+  }
+  .episode .thumb::after {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: linear-gradient(90deg, rgba(6,6,7,.35) 0%, rgba(6,6,7,0) 30%, rgba(19,21,25,0) 62%, rgba(19,21,25,.9) 100%),
+                linear-gradient(0deg, rgba(6,6,7,.35) 0%, rgba(6,6,7,0) 28%);
+  }
+  .episode:hover .thumb img { filter: grayscale(0) contrast(1.04) brightness(.96); transform: scale(1.025); }
+  @media (prefers-reduced-motion: reduce) { .episode .thumb img { transition: none; } .episode:hover .thumb img { transform: none; } }
   .episode .play {
     position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-    width: 62px; height: 62px; border-radius: 50%;
-    background: rgba(0,0,0,.55); border: 1px solid rgba(255,255,255,.6);
+    width: 58px; height: 58px; border-radius: 50%; z-index: 1;
+    background: rgba(8,8,10,.55); border: 1px solid var(--accent);
     display: flex; align-items: center; justify-content: center;
+    transition: background .25s ease;
   }
   .episode .play::after {
-    content: ""; display: block; margin-left: 5px;
-    border-style: solid; border-width: 11px 0 11px 18px;
-    border-color: transparent transparent transparent #f0f0f3;
+    content: ""; display: block; margin-left: 4px;
+    border-style: solid; border-width: 9px 0 9px 15px;
+    border-color: transparent transparent transparent #efe7dc;
   }
-  .episode:hover .play { background: rgba(0,0,0,.75); }
+  .episode:hover .play { background: var(--accent); }
+  .episode:hover .play::after { border-left-color: #14100b; }
   .episode .ep-body { padding: 30px 34px; }
   .episode .ep-tag { font-size: 11px; letter-spacing: .24em; text-transform: uppercase; color: var(--accent-ink); margin-bottom: 10px; }
   .episode h3 { font-size: 23px; line-height: 1.3; color: var(--ink); }
