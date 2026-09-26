@@ -711,6 +711,15 @@
   setupModal('speak-modal', 'open-speak', 'speak-form', 'sp-error',
     'Speaking inquiry — sparksendeavors.com', ['organization', 'message']);
 
+  // A shared signup link opens the form immediately, including for returning visitors.
+  function openSignupFromLink() {
+    if (window.location.hash !== '#book-signup') return;
+    signup.open();
+    try { localStorage.setItem('se-signup-shown', '1'); } catch (e) {}
+  }
+  window.addEventListener('hashchange', openSignupFromLink);
+  openSignupFromLink();
+
   // Auto-open signup once per visitor when they reach the Books section
   var AUTO_KEY = 'se-signup-shown';
   var DONE_KEY = 'se-signup-done';
