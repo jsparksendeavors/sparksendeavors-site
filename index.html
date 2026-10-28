@@ -206,6 +206,36 @@
   .book .status { display: inline-block; margin-top: 10px; font-size: 11.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--accent-ink); border: 1px solid var(--hairline); padding: 4px 10px; }
   .book p { color: var(--ink-soft); font-size: 15.5px; margin-top: 12px; }
 
+  @media (max-width: 760px) { .nav-links { display: flex; } .nav-links a:not(.nav-book) { display: none; } }
+
+  /* Released memoir: authentic artwork, with a direct purchase link. */
+  .book-grid { grid-template-columns: 1fr; gap: 34px; }
+  .book-featured {
+    grid-template-columns: minmax(180px, 240px) minmax(0, 1fr);
+    gap: 44px; padding: 36px; background: var(--panel);
+    border: 1px solid var(--hairline); border-top: 2px solid var(--accent);
+    align-items: center;
+  }
+  .book-artwork { max-width: 240px; width: 100%; }
+  .book-cover-link { display: block; }
+  .book-cover-link img {
+    display: block; width: 100%; height: auto;
+    border: 1px solid var(--hairline); box-shadow: var(--shadow);
+  }
+  .book-artwork .book-buy {
+    display: block; margin-top: 20px; padding: 13px 16px;
+    text-align: center; letter-spacing: .06em;
+    background: var(--accent-ink); color: var(--ground);
+  }
+  .book-featured h3 { font-size: clamp(26px, 3.4vw, 36px); }
+  .book-featured p { font-size: 16px; max-width: 56ch; }
+  .book-featured .book-intro { color: var(--ink); font-size: 19px; }
+  .book-upcoming { max-width: 720px; }
+  @media (max-width: 640px) {
+    .book-featured { grid-template-columns: 1fr; gap: 28px; padding: 28px 24px; }
+    .book-artwork { margin: 0 auto; }
+  }
+
   /* podcast */
   .yt-banner {
     display: block; margin-top: 40px; position: relative; overflow: hidden;
@@ -364,7 +394,7 @@
     <span class="nav-name"><a href="#top">Sparks Endeavors</a></span>
     <div class="nav-links">
       <a href="#ventures">Ventures</a>
-      <a href="#books">Books</a>
+      <a class="nav-book" href="book.html">Book</a>
       <a href="#podcast">Podcast</a>
       <a href="#philosophy">Philosophy</a>
       <a href="#speaking">Speaking</a>
@@ -438,19 +468,22 @@
     <p class="lede">Two books, one question: what does it cost to build something — and what should it never cost you?</p>
 
     <div class="book-grid">
-      <div class="book">
-        <div class="cover" aria-hidden="true">
-          <span class="c-top">A Memoir</span>
-          <span class="c-title">They Were Never in the Room</span>
-          <span class="c-author">Josh Sparks</span>
+      <article class="book book-featured" aria-labelledby="memoir-title">
+        <div class="book-artwork">
+          <a class="book-cover-link" href="book.html" aria-label="Explore They Were Never in the Room">
+            <img src="book-cover.png" width="796" height="1203" loading="lazy" decoding="async" alt="They Were Never in the Room by Josh Sparks — the published cover, with Josh's black-and-white portrait and NEVER in red">
+          </a>
+          <a class="cta book-buy" href="https://www.amazon.com/dp/B0HPGX5DBP" target="_blank" rel="noopener noreferrer" aria-label="Buy They Were Never in the Room on Amazon (opens in a new tab)">Buy on Amazon →</a>
         </div>
         <div>
-          <h3>They Were Never in the Room</h3>
-          <span class="status">Forthcoming</span>
-          <p>A memoir. From foster care and seventeen schools to the top of a half-billion-dollar enterprise — and the voices carried into every negotiation, boardroom, and hard conversation along the way: the old critics and ghosts who were never actually in the room, and what it takes to stop letting them cast the deciding vote.</p>
+          <h3 id="memoir-title">They Were Never in the Room</h3>
+          <span class="status">Available now · A memoir</span>
+          <p class="book-intro serif">Building a company is one thing. Learning who you no longer need to prove wrong is another.</p>
+          <p>From foster care and seventeen schools to the top of a half-billion-dollar enterprise, Josh's memoir explores resilience, ambition, and the freedom of no longer living for someone else's approval.</p>
+          <p><a href="book.html">Explore the book →</a></p>
         </div>
-      </div>
-      <div class="book">
+      </article>
+      <div class="book book-upcoming">
         <div class="cover" aria-hidden="true">
           <span class="c-top">&nbsp;</span>
           <span class="c-title">Everyone Has Your Strategy, Nobody Has Your Execution</span>
@@ -464,7 +497,7 @@
       </div>
     </div>
 
-    <p class="lede" style="margin-top:36px">Want to know when they publish? <a href="#" id="open-signup">Ask to be on the list</a>.</p>
+    <p class="lede" style="margin-top:36px">For book news and future releases, <a href="#" id="open-signup">Ask to be on the list</a>.</p>
   </div>
 </section>
 
@@ -602,7 +635,7 @@
     <button class="m-close" type="button" aria-label="Close">×</button>
     <div class="m-body">
       <h3 class="serif" id="signup-title">Get book updates</h3>
-      <p class="m-sub">Leave your name and email — you'll hear from Josh when the books publish. Nothing else, no spam.</p>
+      <p class="m-sub">Leave your name and email for book news and future releases from Josh. Nothing else, no spam.</p>
       <form id="signup-form" novalidate>
         <input type="checkbox" name="botcheck" class="hp-field" tabindex="-1" autocomplete="off">
         <label for="sf-name">Name</label>
@@ -615,7 +648,7 @@
     </div>
     <div class="m-success" hidden>
       <h3 class="serif">You're on the list.</h3>
-      <p>Thanks — you'll hear from Josh when the books are ready.</p>
+      <p>Thanks — you'll hear from Josh with book news and future releases.</p>
     </div>
   </div>
 </div>
